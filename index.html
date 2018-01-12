@@ -242,6 +242,282 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/12/paxos的一点理解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Watermelon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatarwade.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Watermelon's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/01/12/paxos的一点理解/" itemprop="url">Paxos的一点理解</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-12T21:13:09+08:00">
+                2018-01-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/分布式原理/" itemprop="url" rel="index">
+                    <span itemprop="name">分布式原理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Paxos算法是莱斯利·兰伯特（Leslie Lamport)于1990年提出的一种基于消息传递且具有高度容错特性的一致性算法。Paxos算法目前在Google的Chubby、MegaStore、Spanner等系统中得到了应用，也出现了Paxos很多变种，如Raft，ZAB算法等。Paxos比较难以理解，参考一些资料，自己总结下。</p>
+<h3 id="Paxos解决了什么？"><a href="#Paxos解决了什么？" class="headerlink" title="Paxos解决了什么？"></a>Paxos解决了什么？</h3><p>首先明确下Paxos协议下的几个角色：Acceptor，Proposer，Learner。<br>简化的场景：在一个分布式系统中，各个Acceptor存在一个变量var，一开始var没有值。多个Proposer试去修改这个值，如果保证系统中Acceptor能够确定出一个最终的var值。（暂时不考虑Learner）</p>
+<h3 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h3><p>为了使得能够确定出一个值，我们先要制定一个规则，一旦var已经被赋值了，就不能被任何的客户端去修改。不然Proposer不断的去修改var值，var值永远都不能被确定。</p>
+<h3 id="最简单的场景"><a href="#最简单的场景" class="headerlink" title="最简单的场景"></a>最简单的场景</h3><p>最简单的场景：系统中只有一个Acceptor，一个Proposer。这样确定var很简单，Proposer向Acceptor提交要更改的var值，Acceptor查看系统中当前的var值，若已经有值，则拒绝修改，返回系统当前的var值；若没有值，则接受修改。Proposer收到Acceptor的ack就知道最终确定的var值。</p>
+<h3 id="多个Proposer怎么办？"><a href="#多个Proposer怎么办？" class="headerlink" title="多个Proposer怎么办？"></a>多个Proposer怎么办？</h3><p>现在再加一个Proposer，该怎么办呢？这就变成了经典的并发问题，解决并发问题自然想到加锁。步骤如下：</p>
+<ul>
+<li>Proposer1准备修改var值，首先向Acceptor申请获得锁。</li>
+<li>获得锁之后，再提交自己的var值。这里有个关键点，就是在获取锁的时候，会把这时Acceptor中的var值也返回回来，根据之前的前提条件，如果var已经有值，就不能去修改这个值，若没有值才能去修改。如果这时Proposer2也准备修改var值，则由于锁已经给Proposer1了，Proposer2自然就拿不到锁，自然也就不能修改var值。<br>最终，确定var值。</li>
+</ul>
+<p>但是设想这样一个场景，Acceptor同时收到了Proposer1和Proposer2申请锁的请求时，Acceptor该把锁给谁呢？</p>
+<p>这时，就要给申请锁的请求带个编号，称为epoch。谁的epoch大，就把锁给谁。这就要求针对Proposer1，Proposer2能生成全局递增的epoch值（方法有很多如考虑数据自增长主键，时间戳+节点编号等）。<br>然而，这样依旧存在问题。如果Proposer1拿到了锁之后，啥事都不干，固定捣乱（也可能是宕机了），这时Proposer2再也拿不到锁了。这样也就不能确定var值了。为了解决这个问题，要把锁设计成可以抢占的。也就是，Acceptor把锁给了Proposer1后，这时Proposer2申请锁请求也到了。Acceptor一看Proposer2带的epoch大，决定把锁给Proposer2，把给Proposer1的那把锁设为失效果。这里要注意的是，把锁给Proposer2和让Proposer1失效要做成事务，不然会有问题。这样，系统就能确定最终的var值。</p>
+<h3 id="多个Acceptor怎么办？"><a href="#多个Acceptor怎么办？" class="headerlink" title="多个Acceptor怎么办？"></a>多个Acceptor怎么办？</h3><p>上述这种系统是有问题的，一旦Acceptor宕机了，var值也就确定不了。这时候，就引入了多个Acceptor。<br>引入多个Acceptor后，核心思想是不变的。区别主要在以下方面：</p>
+<ul>
+<li>获取锁；单个Acceptor的时候，一个Proposer如果收到了返回的锁，就可以进行第二阶段的更改操作。现在多Acceptor的情况下，必须收到半数以上的Acceptor的锁时，才能去进行第二阶段。</li>
+<li>收到的锁也会包括对应Acceptor中当前的var值，由于分布式场景下的不可靠，当前的Acceptor中的var值可能不同，有些为空，有些存在值v1，这种情况下，Proposer在提交的时候会提交那个v1。</li>
+</ul>
+<h3 id="Learner的作用"><a href="#Learner的作用" class="headerlink" title="Learner的作用"></a>Learner的作用</h3><p>我自己的理解：由于Accptpr中存在很多的中间状态，如果直接从客户端直接从Accptor的视角去获取值，会获取到中间值，而不是最终确定的值。Learner就负责去Accptpr中获取值，若获取到了半数的相同的值，则说明这个是协商确定出来的值。</p>
+<h3 id="举个列子"><a href="#举个列子" class="headerlink" title="举个列子"></a>举个列子</h3><p>Paxos是强一致性协议，如果存活半数以上的Accptpr，就能够协商出一致性的值，假设现有5个Acceptor（A1，A2，A3，A4，A5），2个Proposer（P1，P2），一个Learner(L1),对变量X进行协商取值。</p>
+<p>初始状态：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A1</th>
+<th>A2</th>
+<th>A3</th>
+<th>A4</th>
+<th>A5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x值</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+</tr>
+</tbody>
+</table>
+<p>第一轮：<br>P1想去改x值，首先放松第一轮请求，但是由于网络问题，只收到了A1，A2，A3的发放的锁，且当前的X返回值是null，所以P1准备把X改为5。但是最后提交，由于网络问题，只有A1收到了，所以一轮后的情况为：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A1</th>
+<th>A2</th>
+<th>A3</th>
+<th>A4</th>
+<th>A5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x值</td>
+<td>5</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+</tr>
+</tbody>
+</table>
+<p>第二轮：<br>P2想去改值，他的请求只收到了A2，A3，A4的发放的锁，由于对应Accptpr的值是null，所以准备把X改为10，但是提交的时候，只有A2收到了，所以状态是：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A1</th>
+<th>A2</th>
+<th>A3</th>
+<th>A4</th>
+<th>A5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x值</td>
+<td>5</td>
+<td>10</td>
+<td>null</td>
+<td>null</td>
+<td>null</td>
+</tr>
+</tbody>
+</table>
+<p>第三轮：<br>P1又想去改值，他的请求只收到了A3，A4，A5的发放的锁，由于对应Accptpr的值是null，所以准备把X改为15，但是提交的时候，只有A3收到了，所以状态是：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A1</th>
+<th>A2</th>
+<th>A3</th>
+<th>A4</th>
+<th>A5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x值</td>
+<td>5</td>
+<td>10</td>
+<td>15</td>
+<td>null</td>
+<td>null</td>
+</tr>
+</tbody>
+</table>
+<p>第四轮：经过上述的过程，Acceptor内部存在不同的值，但是从Learner的角度，无法获取到半数以上的一致值，所以X的值依旧是null。这时A4，A5由于故障，宕机了。P2想去改值，他的请求被A1，A2，A3所接受，返回对应的锁和X的取值，分别是5，10，15；这时。p2发现15这个值对应的epoch最大，所以就决定把它作为最终提交的值，提交后，A1，A2，A3接受了，15，此时状态是：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A1</th>
+<th>A2</th>
+<th>A3</th>
+<th>A4</th>
+<th>A5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x值</td>
+<td>15</td>
+<td>15</td>
+<td>15</td>
+<td>null</td>
+<td>null</td>
+</tr>
+</tbody>
+</table>
+<p>Learner就可以得到半数以上的15，从而得到了一致值15。</p>
+<h3 id="存在问题"><a href="#存在问题" class="headerlink" title="存在问题"></a>存在问题</h3><p>上述的列子，自己可以枚举出很多，Paxos有严格的推导过程。当然也有个问题。简称活锁问题，比如轮次1，一阶段获取到了锁，准备二阶段提交的时候，轮次2的一阶段又来抢占轮次1的锁，轮次1的二阶段的提交就会被拒绝，以此类推，产生了活锁，这样就一值不能协商得到一个确定的值。当然，这个也是可以得到解决的，后续会讲述如何解决。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/31/cms收集器/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -775,7 +1051,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -797,7 +1073,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -836,7 +1112,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

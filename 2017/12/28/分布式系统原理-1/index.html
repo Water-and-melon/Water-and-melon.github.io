@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="Watermelon&#39;s Notes">
 <meta property="og:description" content="前言在分布式的环境下，数据分散在不同的节点上。数据分散的方式有多种，本文做一个总结。 hash方式hash方式就类似于hash表，每台机器就是一个哈希表中的桶，根据hash值分布到各个桶中。这种方式的关键点在于：  hash函数的选择。如果hash函数选择的好，数据均衡落在节点上，这就非常完美。但是，考虑极端的情况下，hash函数将所有的数据都落在一个节点上，那就糟糕透了。  hash方式的好处很">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-12-31T12:13:35.419Z">
+<meta property="og:updated_time" content="2018-02-28T02:00:53.504Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="分布式系统原理(1)">
 <meta name="twitter:description" content="前言在分布式的环境下，数据分散在不同的节点上。数据分散的方式有多种，本文做一个总结。 hash方式hash方式就类似于hash表，每台机器就是一个哈希表中的桶，根据hash值分布到各个桶中。这种方式的关键点在于：  hash函数的选择。如果hash函数选择的好，数据均衡落在节点上，这就非常完美。但是，考虑极端的情况下，hash函数将所有的数据都落在一个节点上，那就糟糕透了。  hash方式的好处很">
@@ -345,11 +345,12 @@
 <p>hash方式的缺点也很明显：</p>
 <ul>
 <li>如果集群好扩容，就要大量的移动数据，牵一发而动全身，这样的代价是很高的。为了优化这一点，扩容的时候一般选择成倍的增加节点，以减少数据移动。（java中的hashmap也采用了这种做法）</li>
-<li>很容易造成数据倾斜。假设存储用户数据，根据用户id进行hash，若一个用户的数据量特别大时候，就会造成倾斜。为了缓解数据倾斜，一般的做法是多增加几个维度。例如用户数据中，可以根据id+数据记录时间进行hash，也可以在id后面随机添加n位数字。但这游破坏了数据的关联性，相同id的数据被分到了多个节点上。</li>
-</ul>
+<li><p>很容易造成数据倾斜。假设存储用户数据，根据用户id进行hash，若一个用户的数据量特别大时候，就会造成倾斜。为了缓解数据倾斜，一般的做法是多增加几个维度。例如用户数据中，可以根据id+数据记录时间进行hash，也可以在id后面随机添加n位数字。但这游破坏了数据的关联性，相同id的数据被分到了多个节点上。</p>
+<a id="more"></a>
 <h3 id="按数据范围"><a href="#按数据范围" class="headerlink" title="按数据范围"></a>按数据范围</h3><p>这种方式根据数据中的可排序的字段进行范围划分，以时间为例：第一季度的数据存在第一个节点，第二季度的数据存在第二个节点，以此类推。个人感觉这种方式和hash的做法较为类似，但也有很多不同：</p>
-<ul>
-<li>hsah的分法你只需要记录hash函数即可，按范围则要记录范围和节点一一对应的关系，维护元数据的开销要大很多。</li>
+</li>
+<li><p>hsah的分法你只需要记录hash函数即可，按范围则要记录范围和节点一一对应的关系，维护元数据的开销要大很多。</p>
+</li>
 <li>相比于hash方式，按数据范围划分的方式更加灵活。范围的区间大小是可以调整的，拿上面的例子。如果第一季度的数据量特别大，我可以对这个范围进一步细化，变为第1月，第2月，第3月。区间可以根据数据量动态调节。</li>
 <li>扩容也更加简单。若第二季度的数据量快速增长，可以为这个区间增加一个节点，这时，区间范围就变成了第4、5月，第6月，只需把原来节点的第6月数据移动到新增节点就完成了扩容。</li>
 </ul>
@@ -495,7 +496,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -506,7 +507,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -517,7 +518,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

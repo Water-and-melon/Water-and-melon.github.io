@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="Watermelon&#39;s Notes">
 <meta property="og:description" content="前言Paxos算法是莱斯利·兰伯特（Leslie Lamport)于1990年提出的一种基于消息传递且具有高度容错特性的一致性算法。Paxos算法目前在Google的Chubby、MegaStore、Spanner等系统中得到了应用，也出现了Paxos很多变种，如Raft，ZAB算法等。Paxos比较难以理解，参考一些资料，自己总结下。 Paxos解决了什么？首先明确下Paxos协议下的几个角色：">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-01-12T13:15:13.352Z">
+<meta property="og:updated_time" content="2018-02-28T02:00:20.184Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Paxos的一点理解">
 <meta name="twitter:description" content="前言Paxos算法是莱斯利·兰伯特（Leslie Lamport)于1990年提出的一种基于消息传递且具有高度容错特性的一致性算法。Paxos算法目前在Google的Chubby、MegaStore、Spanner等系统中得到了应用，也出现了Paxos很多变种，如Raft，ZAB算法等。Paxos比较难以理解，参考一些资料，自己总结下。 Paxos解决了什么？首先明确下Paxos协议下的几个角色：">
@@ -335,7 +335,7 @@
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Paxos算法是莱斯利·兰伯特（Leslie Lamport)于1990年提出的一种基于消息传递且具有高度容错特性的一致性算法。Paxos算法目前在Google的Chubby、MegaStore、Spanner等系统中得到了应用，也出现了Paxos很多变种，如Raft，ZAB算法等。Paxos比较难以理解，参考一些资料，自己总结下。</p>
 <h3 id="Paxos解决了什么？"><a href="#Paxos解决了什么？" class="headerlink" title="Paxos解决了什么？"></a>Paxos解决了什么？</h3><p>首先明确下Paxos协议下的几个角色：Acceptor，Proposer，Learner。<br>简化的场景：在一个分布式系统中，各个Acceptor存在一个变量var，一开始var没有值。多个Proposer试去修改这个值，如果保证系统中Acceptor能够确定出一个最终的var值。（暂时不考虑Learner）</p>
 <h3 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h3><p>为了使得能够确定出一个值，我们先要制定一个规则，一旦var已经被赋值了，就不能被任何的客户端去修改。不然Proposer不断的去修改var值，var值永远都不能被确定。</p>
-<h3 id="最简单的场景"><a href="#最简单的场景" class="headerlink" title="最简单的场景"></a>最简单的场景</h3><p>最简单的场景：系统中只有一个Acceptor，一个Proposer。这样确定var很简单，Proposer向Acceptor提交要更改的var值，Acceptor查看系统中当前的var值，若已经有值，则拒绝修改，返回系统当前的var值；若没有值，则接受修改。Proposer收到Acceptor的ack就知道最终确定的var值。</p>
+<h3 id="最简单的场景"><a href="#最简单的场景" class="headerlink" title="最简单的场景"></a>最简单的场景</h3><p>最简单的场景：系统中只有一个Acceptor，一个Proposer。这样确定var很简单，Proposer向Acceptor提交要更改的var值，Acceptor查看系统中当前的var值，若已经有值，则拒绝修改，返回系统当前的var值；若没有值，则接受修改。Proposer收到Acceptor的ack就知道最终确定的var值。<br><a id="more"></a></p>
 <h3 id="多个Proposer怎么办？"><a href="#多个Proposer怎么办？" class="headerlink" title="多个Proposer怎么办？"></a>多个Proposer怎么办？</h3><p>现在再加一个Proposer，该怎么办呢？这就变成了经典的并发问题，解决并发问题自然想到加锁。步骤如下：</p>
 <ul>
 <li>Proposer1准备修改var值，首先向Acceptor申请获得锁。</li>
@@ -594,7 +594,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -605,7 +605,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -616,7 +616,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

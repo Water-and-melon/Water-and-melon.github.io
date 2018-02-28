@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="java,垃圾回收," />
+  <meta name="keywords" content="spark,hadoop," />
 
 
 
@@ -79,20 +79,21 @@
 
 
 
-<meta name="description" content="前言CMS(Concurrent Mark Sweep),应用广泛。侧重点是，希望系统的停顿尽可能的少，特别对于一些需要实时响应的场景下较为适合。 流程CMS收集器的运作过程主要有以下几步（结合图）：  初始标记(CMS initial mark) 并发标记(CMS concurrent mark) 重新标记(CMS ">
-<meta name="keywords" content="java,垃圾回收">
+<meta name="description" content="前言在批处理的大环境下，spark和hadoop的运用都很广泛，spark比起hadoop具有更好的性能。其中shuffle性能的好坏直接影响了整个处理环节的好坏，本文就对hadoop shuffle 和 spark shuffle 做一个比较。 hadoop shuffle IFile存储格式：(key-len , ">
+<meta name="keywords" content="spark,hadoop">
 <meta property="og:type" content="article">
-<meta property="og:title" content="cms收集器">
-<meta property="og:url" content="http://yoursite.com/2017/12/31/cms收集器/index.html">
+<meta property="og:title" content="hadoop shuffle 和 spark shuffle 的区别">
+<meta property="og:url" content="http://yoursite.com/2017/10/21/hadoop-shuffle-和-spark-shuffle-的区别/index.html">
 <meta property="og:site_name" content="Watermelon&#39;s Notes">
-<meta property="og:description" content="前言CMS(Concurrent Mark Sweep),应用广泛。侧重点是，希望系统的停顿尽可能的少，特别对于一些需要实时响应的场景下较为适合。 流程CMS收集器的运作过程主要有以下几步（结合图）：  初始标记(CMS initial mark) 并发标记(CMS concurrent mark) 重新标记(CMS remark) 并发清理(CMS concurrent sweep)    下面">
+<meta property="og:description" content="前言在批处理的大环境下，spark和hadoop的运用都很广泛，spark比起hadoop具有更好的性能。其中shuffle性能的好坏直接影响了整个处理环节的好坏，本文就对hadoop shuffle 和 spark shuffle 做一个比较。 hadoop shuffle IFile存储格式：(key-len , value-len , key ,value) map端的排序：会存在一个缓冲区">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/images/cms流程.png">
-<meta property="og:updated_time" content="2018-02-28T01:59:26.407Z">
+<meta property="og:image" content="http://yoursite.com/Users/lcx/Documents/文章/总结/sparkoriginalshuffle.jpeg">
+<meta property="og:image" content="http://yoursite.com/Users/lcx/Documents/文章/总结/sparkshuffle.jpeg">
+<meta property="og:updated_time" content="2018-02-28T02:29:11.844Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="cms收集器">
-<meta name="twitter:description" content="前言CMS(Concurrent Mark Sweep),应用广泛。侧重点是，希望系统的停顿尽可能的少，特别对于一些需要实时响应的场景下较为适合。 流程CMS收集器的运作过程主要有以下几步（结合图）：  初始标记(CMS initial mark) 并发标记(CMS concurrent mark) 重新标记(CMS remark) 并发清理(CMS concurrent sweep)    下面">
-<meta name="twitter:image" content="http://yoursite.com/images/cms流程.png">
+<meta name="twitter:title" content="hadoop shuffle 和 spark shuffle 的区别">
+<meta name="twitter:description" content="前言在批处理的大环境下，spark和hadoop的运用都很广泛，spark比起hadoop具有更好的性能。其中shuffle性能的好坏直接影响了整个处理环节的好坏，本文就对hadoop shuffle 和 spark shuffle 做一个比较。 hadoop shuffle IFile存储格式：(key-len , value-len , key ,value) map端的排序：会存在一个缓冲区">
+<meta name="twitter:image" content="http://yoursite.com/Users/lcx/Documents/文章/总结/sparkoriginalshuffle.jpeg">
 
 
 
@@ -122,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2017/12/31/cms收集器/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/10/21/hadoop-shuffle-和-spark-shuffle-的区别/"/>
 
 
 
 
 
-  <title>cms收集器 | Watermelon's Notes</title>
+  <title>hadoop shuffle 和 spark shuffle 的区别 | Watermelon's Notes</title>
   
 
 
@@ -245,7 +246,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/31/cms收集器/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/21/hadoop-shuffle-和-spark-shuffle-的区别/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Watermelon">
@@ -262,7 +263,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">cms收集器</h1>
+          <h1 class="post-title" itemprop="name headline">hadoop shuffle 和 spark shuffle 的区别</h1>
         
 
         <div class="post-meta">
@@ -274,8 +275,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-31T21:30:07+08:00">
-                2017-12-31
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-21T21:32:09+08:00">
+                2017-10-21
               </time>
             
 
@@ -297,8 +298,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
                   </a>
                 </span>
 
@@ -334,28 +335,35 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>CMS(Concurrent Mark Sweep),应用广泛。侧重点是，希望系统的停顿尽可能的少，特别对于一些需要实时响应的场景下较为适合。</p>
-<h3 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h3><p>CMS收集器的运作过程主要有以下几步（结合图）：</p>
-<ul>
-<li>初始标记(CMS initial mark)</li>
-<li>并发标记(CMS concurrent mark)</li>
-<li>重新标记(CMS remark)</li>
-<li>并发清理(CMS concurrent sweep) </li>
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在批处理的大环境下，spark和hadoop的运用都很广泛，spark比起hadoop具有更好的性能。其中shuffle性能的好坏直接影响了整个处理环节的好坏，本文就对hadoop shuffle 和 spark shuffle 做一个比较。</p>
+<h2 id="hadoop-shuffle"><a href="#hadoop-shuffle" class="headerlink" title="hadoop shuffle"></a>hadoop shuffle</h2><ol>
+<li>IFile存储格式：(key-len , value-len , key ,value)</li>
+<li>map端的排序：会存在一个缓冲区，当缓冲区利用的比列到达一定的阈值后，会进行一次排序。然后写入到磁盘中，这样就存在很多的有序的小文件，最后，对这些文件进行一次归并排序，形成一个有序的大文件。（缓冲区的排序使用的是快速排序，有一定的优化：枢轴的选取，递归次数的控制），文件的归并使用的是堆排序）</li>
+<li>spill的具体过程： 首先对缓冲池中的数据进行快速排序，快速排序的依据（首先针对parition，然后根据key进行排序），这样就保证每个partition的内容都是有序的。当写入到磁盘的时候，如果map有设置了combiner，写入磁盘前先做一次聚合。然后写入到磁盘，当然，也要记录该文件针对分区的索引文件。</li>
+<li>Combine需要把所有的小文件进行一次合并。合并成一个大文件和一个索引文件，一个文件的好处是可以有效的避免随机IO开销。</li>
+<li>shuffle阶段：抓取对应partition的数据，如果超过设定的内存大小，写到磁盘。</li>
+<li>merge：在远程拷贝数据的同时，进行合并，减少内存和磁盘文件的数量。</li>
+<li>sort：因为map端已经排序过了，所以只需要简单的归并即可。</li>
+<li>reduce：处理自定义逻辑。<a id="more"></a>
+<h2 id="spark-shuffle"><a href="#spark-shuffle" class="headerlink" title="spark shuffle"></a>spark shuffle</h2>以简单的map-reduce逻辑分析。<h4 id="最原始的spark-shuffle。"><a href="#最原始的spark-shuffle。" class="headerlink" title="最原始的spark shuffle。"></a>最原始的spark shuffle。</h4>对与每个map的，对每一个reduce创建一个buket，如果有a个map、b个reduce，就会产生a*b个bucket。这会产生大量的随机IO，效率很低。而且早起的map输出先全部放在内存中，容易内存溢出。改进后的shuffle最中只会产生一个文件块，和索引信息，这一点和hadoop是非常相似的。</li>
+</ol>
+<h4 id="改进端shuffle"><a href="#改进端shuffle" class="headerlink" title="改进端shuffle"></a>改进端shuffle</h4><p>改进后map端存在的三种情况：</p>
+<ol>
+<li>如果partiton的数量非常的少，这个时候就无需在shuffle的map端进行排序和聚合，只是简单的将数据进行分区处理就行。这个时候只是将每个partition的数据溢写到磁盘，最后进行一次合并。<br><img src="/Users/lcx/Documents/文章/总结/sparkoriginalshuffle.jpeg" alt=""></li>
+<li>map端对partiton的数据进行缓存排序。缓存结构采用的是array的数据结果，扩容也是2倍的去扩容。达到内存限制时会溢出，溢出的时候先根据partition和key进行排序，每个partition对应一个文件，最后进行合并生成一个数据文件和一个索引文件。</li>
+<li>map端对parition数据进行排序和聚合。需要用到一个关键的数据结构：AppendOnlyMap，可以看成hashmap的升级版，有个核心操作是插入的时候如果需要聚合计算，直接进行聚合并修改旧值。AppendOnlyMap同样需要扩容，容量大于阈值的时候要溢写到磁盘。溢出磁盘做法和上面介绍的相同。<br><img src="/Users/lcx/Documents/文章/总结/sparkshuffle.jpeg" alt=""></li>
+</ol>
+<p>reduce端处理方式：</p>
+<ol>
+<li>拉取数据：通过MapOutputTracker获取map的状态信息，获取到上游数据所有的block信息。把拉取数据封装成一个请求，放在队列中异步的去拉取。在发送请求的时候也有个优化点，把发往同一个机器节点的小数据量的请求进行合并，减少网络开销。</li>
+<li>拉取到的数据放在哪里？这里涉及到一个配置项：如果 spark.shuffle.spill = false 就只用内存,内存使用的是 AppendOnlyMap。否则采用的是 内存+磁盘的方式，使用的是 ExternalAppendOnlyMap，如果内存空间不足时 ，ExternalAppendOnlyMap 可以将 <k, v=""> records进行sort后spill到磁盘上，等到需要它们的时候再进行全局的归并聚合。</k,></li>
+</ol>
+<h2 id="异同点"><a href="#异同点" class="headerlink" title="异同点"></a>异同点</h2><ul>
+<li>不管是hadoop还是spark，针对mapreduce的处理总的逻辑是相似的。</li>
+<li>相比hadoop shuffle，spark的shuffle过程中，更多的使用了内存。这也是spark性能优势的关键。</li>
+<li>Combine操作在hadoop中是需要认为的设置，而spark处理则更为智能，能否map 端聚合是蕴藏在transformation()中的。</li>
+<li>hadoop shuffle是sort-based的，进入 combine() 和 reduce() 的 records 必须先 sort。spark则更加的灵活，根据partition的数目选择是否sort，如果不需要sort，就退化成 hash-based shuffle方式。</li>
 </ul>
-<p><img src="/images/cms流程.png" alt=""></p>
-<p>下面通过一个打扫房间的实际例子解释下CMS。<br><a id="more"></a><br>好比房间里有5个熊孩子在玩耍，他们会把房间搞的很乱，你在一边要实时的打扫房间。你肯定不能把熊孩子赶出房间再打扫卫生，这时，你可以这样做：</p>
-<ul>
-<li>首先，你会让熊孩子都停一下，这时候你迅速的清理一些垃圾。孩子暂停打闹的时间是很短的，所以这里的关键是找到一些明显的，一下子就看到的垃圾一起扫到一边。这一步就对应初始标记。</li>
-<li>处理完一些明显的垃圾，你就要处理比较细微的垃圾，此时，你不需要孩子停下来，你自己在一边慢慢的把垃圾扫到一起。这一步对应并发标记。</li>
-<li>眼看就要大功告成了，这时你发现在你处理细小垃圾的时候，熊孩子又制造出了一些垃圾，好在这些垃圾数量不多。这时，你就会大喊一声：stop！让熊孩子再停一下，然后快速把新产生的垃圾扫到一起。这一步对应重新标记。</li>
-<li>总算大功告成了，你就把扫到一起的垃圾装入垃圾袋，完成打扫。这一步对应并发清理。</li>
-</ul>
-<h3 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h3><p>优点：并发收集，低停顿。(你在扫垃圾的时候，熊孩子还是可以玩耍的)</p>
-<p>缺点：</p>
-<p>1.CMS长期占用一部分的线程，导致应用的吞吐率降低。（你在一边打扫的时候，熊孩子感觉玩的不爽） </p>
-<p>2.CMS收集器无法处理浮动垃圾。用于CMS并发清理的时候，用户还在执行，垃圾一直清理不干净。有些时候会触发另一次的fullGC。（你发现有熊孩子在，怎么都收拾不干净，只好把熊孩子轰出去再打扫）</p>
-<p>3.CMS收集器是一款基于“标记–清除”实现的算法，会产生很多碎片。改进的方法就是进行合并整理，这样就会导致停顿时间变长。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>CMS不太完美。所以发明了另一种G1收集器。</p>
 
       
     </div>
@@ -373,9 +381,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/java/" rel="tag"># java</a>
+            <a href="/tags/spark/" rel="tag"># spark</a>
           
-            <a href="/tags/垃圾回收/" rel="tag"># 垃圾回收</a>
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
           
         </div>
       
@@ -388,18 +396,14 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/12/28/分布式系统原理-1/" rel="next" title="分布式系统原理(1)">
-                <i class="fa fa-chevron-left"></i> 分布式系统原理(1)
-              </a>
-            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/01/12/paxos的一点理解/" rel="prev" title="Paxos的一点理解">
-                Paxos的一点理解 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/12/15/网络安全——加密+认证/" rel="prev" title="网络安全——加密+认证">
+                网络安全——加密+认证 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -540,7 +544,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流程"><span class="nav-number">2.</span> <span class="nav-text">流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优缺点"><span class="nav-number">3.</span> <span class="nav-text">优缺点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hadoop-shuffle"><span class="nav-number">2.</span> <span class="nav-text">hadoop shuffle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#spark-shuffle"><span class="nav-number">3.</span> <span class="nav-text">spark shuffle</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#最原始的spark-shuffle。"><span class="nav-number">3.0.1.</span> <span class="nav-text">最原始的spark shuffle。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#改进端shuffle"><span class="nav-number">3.0.2.</span> <span class="nav-text">改进端shuffle</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异同点"><span class="nav-number">4.</span> <span class="nav-text">异同点</span></a></li></ol></div>
             
 
           </div>

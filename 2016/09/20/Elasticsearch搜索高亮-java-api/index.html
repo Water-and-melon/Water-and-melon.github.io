@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="计算机基础,计算机网络," />
+  <meta name="keywords" content="java,Elasticsearch," />
 
 
 
@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="今天了解了一下网络安全方面的内容，就加密和认证做一个总结。 无加密一开始人们直接通过明文进行通讯，导致大量的信息窃听，人们认识到这个严重的问题，才有了加密。 对称加密对称加密的想法是，发送方把明文通过一定的规则的转换，转换成一堆看上去毫无意义的密文。接收方通过规则把密文反向的转换成发送方的明文，完成通讯。这样，就算中间">
-<meta name="keywords" content="计算机基础,计算机网络">
+<meta name="description" content="前言最近运动社区的项目中，需要能够对所有的问答数据通过关键字进行全文检索，并高亮显示搜索关键字。调研了一下Elasticsearch，发现实现起来特别简单。 简介Elasticsearch是一个实时分布式搜索和分析引擎，可以用于全文检索、聚合分析。Elasticsearch、logstash、kibana并称为ELK技">
+<meta name="keywords" content="java,Elasticsearch">
 <meta property="og:type" content="article">
-<meta property="og:title" content="网络安全——加密+认证">
-<meta property="og:url" content="http://yoursite.com/2017/12/15/网络安全——加密+认证/index.html">
+<meta property="og:title" content="Elasticsearch搜索高亮(java api)">
+<meta property="og:url" content="http://yoursite.com/2016/09/20/Elasticsearch搜索高亮-java-api/index.html">
 <meta property="og:site_name" content="Watermelon&#39;s Notes">
-<meta property="og:description" content="今天了解了一下网络安全方面的内容，就加密和认证做一个总结。 无加密一开始人们直接通过明文进行通讯，导致大量的信息窃听，人们认识到这个严重的问题，才有了加密。 对称加密对称加密的想法是，发送方把明文通过一定的规则的转换，转换成一堆看上去毫无意义的密文。接收方通过规则把密文反向的转换成发送方的明文，完成通讯。这样，就算中间有人窃听，他也听不懂。但这存在一个问题，如何让通讯双方拥有相同秘钥呢（转换规则）">
+<meta property="og:description" content="前言最近运动社区的项目中，需要能够对所有的问答数据通过关键字进行全文检索，并高亮显示搜索关键字。调研了一下Elasticsearch，发现实现起来特别简单。 简介Elasticsearch是一个实时分布式搜索和分析引擎，可以用于全文检索、聚合分析。Elasticsearch、logstash、kibana并称为ELK技术栈，可以一栈式的进行数据采集、分析、可视化工作，功能非常强大。 使用ik进行中">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-02-28T02:12:42.919Z">
+<meta property="og:updated_time" content="2018-02-28T12:19:00.454Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="网络安全——加密+认证">
-<meta name="twitter:description" content="今天了解了一下网络安全方面的内容，就加密和认证做一个总结。 无加密一开始人们直接通过明文进行通讯，导致大量的信息窃听，人们认识到这个严重的问题，才有了加密。 对称加密对称加密的想法是，发送方把明文通过一定的规则的转换，转换成一堆看上去毫无意义的密文。接收方通过规则把密文反向的转换成发送方的明文，完成通讯。这样，就算中间有人窃听，他也听不懂。但这存在一个问题，如何让通讯双方拥有相同秘钥呢（转换规则）">
+<meta name="twitter:title" content="Elasticsearch搜索高亮(java api)">
+<meta name="twitter:description" content="前言最近运动社区的项目中，需要能够对所有的问答数据通过关键字进行全文检索，并高亮显示搜索关键字。调研了一下Elasticsearch，发现实现起来特别简单。 简介Elasticsearch是一个实时分布式搜索和分析引擎，可以用于全文检索、聚合分析。Elasticsearch、logstash、kibana并称为ELK技术栈，可以一栈式的进行数据采集、分析、可视化工作，功能非常强大。 使用ik进行中">
 
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2017/12/15/网络安全——加密+认证/"/>
+  <link rel="canonical" href="http://yoursite.com/2016/09/20/Elasticsearch搜索高亮-java-api/"/>
 
 
 
 
 
-  <title>网络安全——加密+认证 | Watermelon's Notes</title>
+  <title>Elasticsearch搜索高亮(java api) | Watermelon's Notes</title>
   
 
 
@@ -243,7 +243,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/12/15/网络安全——加密+认证/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/09/20/Elasticsearch搜索高亮-java-api/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Watermelon">
@@ -260,7 +260,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">网络安全——加密+认证</h1>
+          <h1 class="post-title" itemprop="name headline">Elasticsearch搜索高亮(java api)</h1>
         
 
         <div class="post-meta">
@@ -272,8 +272,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-15T10:03:50+08:00">
-                2017-12-15
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-20T22:12:32+08:00">
+                2016-09-20
               </time>
             
 
@@ -295,8 +295,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/计算机基础/" itemprop="url" rel="index">
-                    <span itemprop="name">计算机基础</span>
+                  <a href="/categories/大数据/" itemprop="url" rel="index">
+                    <span itemprop="name">大数据</span>
                   </a>
                 </span>
 
@@ -332,21 +332,28 @@
       
 
       
-        <p>今天了解了一下网络安全方面的内容，就加密和认证做一个总结。</p>
-<h3 id="无加密"><a href="#无加密" class="headerlink" title="无加密"></a>无加密</h3><p>一开始人们直接通过明文进行通讯，导致大量的信息窃听，人们认识到这个严重的问题，才有了加密。</p>
-<h3 id="对称加密"><a href="#对称加密" class="headerlink" title="对称加密"></a>对称加密</h3><p>对称加密的想法是，发送方把明文通过一定的规则的转换，转换成一堆看上去毫无意义的密文。接收方通过规则把密文反向的转换成发送方的明文，完成通讯。这样，就算中间有人窃听，他也听不懂。但这存在一个问题，如何让通讯双方拥有相同秘钥呢（转换规则）？</p>
-<h3 id="非对称加密"><a href="#非对称加密" class="headerlink" title="非对称加密"></a>非对称加密</h3><p>显然，在复杂的网络环境下，通讯双方协商出相同的秘钥存在困难。这时，就有研究者提出了新的解决方案。接受信息的一方通过算法生成两个秘钥，一个是公有的，可以告诉互联网的所有人，一个是私有的，只有自己知道。发送方通过公钥对内容进行加密，接受方通过私钥解密可以恢复出原来的内容。这个方法很好的解决了对称加密协商秘钥的困难。然而，非对称加密也存在着问题。    </p>
-<ul>
-<li>非对称解密的需要消耗大量的计算资源，速度慢。</li>
-<li>公钥所有人都可以拿到，坏人可以轻易的给接受者发送消息，而且接受方也不能判断出发送者是坏人。<a id="more"></a>
-<h3 id="对称加密-密钥交换协议"><a href="#对称加密-密钥交换协议" class="headerlink" title="对称加密+密钥交换协议"></a>对称加密+密钥交换协议</h3></li>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>最近运动社区的项目中，需要能够对所有的问答数据通过关键字进行全文检索，并高亮显示搜索关键字。调研了一下Elasticsearch，发现实现起来特别简单。</p>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>Elasticsearch是一个实时分布式搜索和分析引擎，可以用于全文检索、聚合分析。Elasticsearch、logstash、kibana并称为ELK技术栈，可以一栈式的进行数据采集、分析、可视化工作，功能非常强大。</p>
+<h3 id="使用ik进行中文分词"><a href="#使用ik进行中文分词" class="headerlink" title="使用ik进行中文分词"></a>使用ik进行中文分词</h3><p>由于问答系统中都是一些中文的内容，Elasticsearch 自带的分词无法对中文进行分词。需要安装ik分词插件。<br>安装步骤：<a href="https://github.com/medcl/elasticsearch-analysis-ik" target="_blank" rel="noopener">点击此链接</a><br><a id="more"></a></p>
+<h3 id="测试分词效果"><a href="#测试分词效果" class="headerlink" title="测试分词效果"></a>测试分词效果</h3><ul>
+<li>新建一个索引:</li>
 </ul>
-<p>由于非对称加密存在上面的问题，人们还是更希望使用对称加密的方法。这时，就有人提出了一种协商密钥的方法（DH算法），通讯双方可以协商出一个秘钥，而且秘钥不会被他们知道。这也就基本上解决了对称加密遗留下来的问题。但是，这还是有个问题。假设存在下面的情形：一个攻击者在通讯双方协商秘钥的时候，参杂到通讯中间，分别拦截协商秘钥的信息，并且假装是协商的另一方协商秘钥。此时，攻击者就可以分别和发送方和接收方通过秘钥进行通讯，为所欲为，更重要的问题是通讯双方完全不知情。这就是著名的中间人攻击。</p>
-<h3 id="签名认证-密钥交换"><a href="#签名认证-密钥交换" class="headerlink" title="签名认证+密钥交换"></a>签名认证+密钥交换</h3><p>前面这个问题关键缺陷在于，不能分辨出中间夹杂的那个坏人。所以问题关键在于如何认证通讯的对方是个好人。<br>这时，人们就想出了一个非常精妙的办法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -XPUT http://localhost:9200/sport</span><br></pre></td></tr></table></figure>
 <ul>
-<li>接收方根据之前提到的非对称加密的方法，生成公钥+私钥。其中，为了验证自己的身份，接收方会用自己的一些个人信息生成一个签名，然后用生成的私钥进行加密，然后把签名+加密后的签名交给发送方。发送方根据公钥，进行解密，与开始的签名进行对照，如果相同，就说明对方是好人。然后就可以进行下一步的秘钥交换。然后双方就用秘钥，用对称加密的方式进行通讯。</li>
+<li>设置映射关系:</li>
 </ul>
-<p>但是，这还有一个问题。就是坏人也可以这样干啊，给自己打一个好人的标签。这个时候，唯一的办法是，找一个权威的机构（CA），如果判定是好人，就给他打个标签，用机构的私钥进行加密，并把公钥发给发送方。进一步考虑，公钥在传输的过程中可能破坏，所以只能一开始就让发送客户端知道。这时，只能依靠一些知名的客户端操作系统，他们会把CA机构的公钥事先植入，这样就可以保证公钥的安全。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST http://localhost:9200/sport/wenda/_mapping -d ‘</span><br><span class="line">&#123;</span><br><span class="line">        &quot;properties&quot;: &#123;</span><br><span class="line">            &quot;question&quot;: &#123;</span><br><span class="line">                &quot;type&quot;: &quot;text&quot;,</span><br><span class="line">                &quot;analyzer&quot;: &quot;ik_max_word&quot;,</span><br><span class="line">                &quot;search_analyzer&quot;: &quot;ik_max_word&quot;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">&#125;&apos;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>添加文档</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST http://localhost:9200/sport/wenda/1 </span><br><span class="line">&#123;&quot;question&quot;:&quot;如何进行科学的减肥&quot;&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>分词效果查看</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -XGET /sport/wenda/1/_termvectors?fields=$&#123;question&#125;</span><br></pre></td></tr></table></figure>
+<p>结果分成了：何进、减肥、如何、的、科学、进行</p>
+<h3 id="java-api-进行搜索"><a href="#java-api-进行搜索" class="headerlink" title="java api 进行搜索"></a>java api 进行搜索</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> UnknownHostException </span>&#123;</span><br><span class="line">        Settings settings = Settings.builder()</span><br><span class="line">                .put(<span class="string">"client.transport.ignore_cluster_name"</span>, <span class="keyword">true</span>)</span><br><span class="line">                .build();</span><br><span class="line">        TransportClient client = <span class="keyword">new</span> PreBuiltTransportClient(settings)</span><br><span class="line">                .addTransportAddress(<span class="keyword">new</span> InetSocketTransportAddress(<span class="keyword">new</span> InetSocketAddress(<span class="string">"localhost"</span>,<span class="number">9300</span>)));</span><br><span class="line">        QueryBuilder matchQuery = QueryBuilders.matchQuery(<span class="string">"question"</span>, <span class="string">"减肥"</span>);</span><br><span class="line">        HighlightBuilder hiBuilder=<span class="keyword">new</span> HighlightBuilder();</span><br><span class="line">        hiBuilder.preTags(<span class="string">"&lt;h2&gt;"</span>);</span><br><span class="line">        hiBuilder.postTags(<span class="string">"&lt;/h2&gt;"</span>);</span><br><span class="line">        hiBuilder.field(<span class="string">"question"</span>);</span><br><span class="line"></span><br><span class="line">        SearchResponse response = client.prepareSearch(<span class="string">"sport"</span>)</span><br><span class="line">                .setTypes(<span class="string">"wenda"</span>)</span><br><span class="line">                .setQuery(matchQuery)                 <span class="comment">// Query</span></span><br><span class="line">                .setFrom(<span class="number">0</span>).setSize(<span class="number">60</span>).setExplain(<span class="keyword">true</span>)</span><br><span class="line">                .highlighter(hiBuilder)</span><br><span class="line">                .get();</span><br><span class="line"></span><br><span class="line">        SearchHits searchHits = response.getHits();</span><br><span class="line">        <span class="keyword">for</span> (SearchHit searchHit:searchHits)&#123;</span><br><span class="line">            System.out.println(<span class="string">"搜索全内容:"</span>);</span><br><span class="line">            System.out.println(searchHit.getSourceAsString());</span><br><span class="line">            System.out.println(<span class="string">"打印高亮内容"</span>);</span><br><span class="line">            System.out.println(searchHit.getHighlightFields());</span><br><span class="line"></span><br><span class="line">            System.out.println(<span class="string">"打印所有高亮片段:"</span>);</span><br><span class="line">            Text[] text = searchHit.getHighlightFields().get(<span class="string">"question"</span>).getFragments();</span><br><span class="line">            <span class="keyword">for</span> (Text str : text) &#123;</span><br><span class="line">                System.out.println(str.string());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p>最后高亮返回的数据是：如何进行科学的&lt;h2&gt;减肥&lt;/h2&gt;。返回前端直接显示即可。</p>
 
       
     </div>
@@ -364,9 +371,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/计算机基础/" rel="tag"># 计算机基础</a>
+            <a href="/tags/java/" rel="tag"># java</a>
           
-            <a href="/tags/计算机网络/" rel="tag"># 计算机网络</a>
+            <a href="/tags/Elasticsearch/" rel="tag"># Elasticsearch</a>
           
         </div>
       
@@ -379,18 +386,14 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/10/21/hadoop-shuffle-和-spark-shuffle-的区别/" rel="next" title="hadoop shuffle 和 spark shuffle 的区别">
-                <i class="fa fa-chevron-left"></i> hadoop shuffle 和 spark shuffle 的区别
-              </a>
-            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/12/28/分布式系统原理-1/" rel="prev" title="分布式系统原理(1)">
-                分布式系统原理(1) <i class="fa fa-chevron-right"></i>
+              <a href="/2017/10/21/hadoop-shuffle-和-spark-shuffle-的区别/" rel="prev" title="hadoop shuffle 和 spark shuffle 的区别">
+                hadoop shuffle 和 spark shuffle 的区别 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -531,7 +534,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#无加密"><span class="nav-number">1.</span> <span class="nav-text">无加密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对称加密"><span class="nav-number">2.</span> <span class="nav-text">对称加密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#非对称加密"><span class="nav-number">3.</span> <span class="nav-text">非对称加密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对称加密-密钥交换协议"><span class="nav-number">4.</span> <span class="nav-text">对称加密+密钥交换协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#签名认证-密钥交换"><span class="nav-number">5.</span> <span class="nav-text">签名认证+密钥交换</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简介"><span class="nav-number">2.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用ik进行中文分词"><span class="nav-number">3.</span> <span class="nav-text">使用ik进行中文分词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试分词效果"><span class="nav-number">4.</span> <span class="nav-text">测试分词效果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java-api-进行搜索"><span class="nav-number">5.</span> <span class="nav-text">java api 进行搜索</span></a></li></ol></div>
             
 
           </div>

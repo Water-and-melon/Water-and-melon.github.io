@@ -87,13 +87,13 @@
 <meta property="og:site_name" content="Watermelon&#39;s Notes">
 <meta property="og:description" content="前言在批处理的大环境下，spark和hadoop的运用都很广泛，spark比起hadoop具有更好的性能。其中shuffle性能的好坏直接影响了整个处理环节的好坏，本文就对hadoop shuffle 和 spark shuffle 做一个比较。 hadoop shuffle IFile存储格式：(key-len , value-len , key ,value) map端的排序：会存在一个缓冲区">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/Users/lcx/Documents/文章/总结/sparkoriginalshuffle.jpeg">
-<meta property="og:image" content="http://yoursite.com/Users/lcx/Documents/文章/总结/sparkshuffle.jpeg">
-<meta property="og:updated_time" content="2018-02-28T02:29:11.844Z">
+<meta property="og:image" content="http://yoursite.com/images/sparkoriginalshuffle.jpeg">
+<meta property="og:image" content="http://yoursite.com/images/sparkshuffle.jpeg">
+<meta property="og:updated_time" content="2018-03-01T02:23:57.224Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hadoop shuffle 和 spark shuffle 的区别">
 <meta name="twitter:description" content="前言在批处理的大环境下，spark和hadoop的运用都很广泛，spark比起hadoop具有更好的性能。其中shuffle性能的好坏直接影响了整个处理环节的好坏，本文就对hadoop shuffle 和 spark shuffle 做一个比较。 hadoop shuffle IFile存储格式：(key-len , value-len , key ,value) map端的排序：会存在一个缓冲区">
-<meta name="twitter:image" content="http://yoursite.com/Users/lcx/Documents/文章/总结/sparkoriginalshuffle.jpeg">
+<meta name="twitter:image" content="http://yoursite.com/images/sparkoriginalshuffle.jpeg">
 
 
 
@@ -349,9 +349,9 @@
 </ol>
 <h4 id="改进端shuffle"><a href="#改进端shuffle" class="headerlink" title="改进端shuffle"></a>改进端shuffle</h4><p>改进后map端存在的三种情况：</p>
 <ol>
-<li>如果partiton的数量非常的少，这个时候就无需在shuffle的map端进行排序和聚合，只是简单的将数据进行分区处理就行。这个时候只是将每个partition的数据溢写到磁盘，最后进行一次合并。<br><img src="/Users/lcx/Documents/文章/总结/sparkoriginalshuffle.jpeg" alt=""></li>
+<li>如果partiton的数量非常的少，这个时候就无需在shuffle的map端进行排序和聚合，只是简单的将数据进行分区处理就行。这个时候只是将每个partition的数据溢写到磁盘，最后进行一次合并。<br><img src="/images/sparkoriginalshuffle.jpeg" alt=""></li>
 <li>map端对partiton的数据进行缓存排序。缓存结构采用的是array的数据结果，扩容也是2倍的去扩容。达到内存限制时会溢出，溢出的时候先根据partition和key进行排序，每个partition对应一个文件，最后进行合并生成一个数据文件和一个索引文件。</li>
-<li>map端对parition数据进行排序和聚合。需要用到一个关键的数据结构：AppendOnlyMap，可以看成hashmap的升级版，有个核心操作是插入的时候如果需要聚合计算，直接进行聚合并修改旧值。AppendOnlyMap同样需要扩容，容量大于阈值的时候要溢写到磁盘。溢出磁盘做法和上面介绍的相同。<br><img src="/Users/lcx/Documents/文章/总结/sparkshuffle.jpeg" alt=""></li>
+<li>map端对parition数据进行排序和聚合。需要用到一个关键的数据结构：AppendOnlyMap，可以看成hashmap的升级版，有个核心操作是插入的时候如果需要聚合计算，直接进行聚合并修改旧值。AppendOnlyMap同样需要扩容，容量大于阈值的时候要溢写到磁盘。溢出磁盘做法和上面介绍的相同。<br><img src="/images/sparkshuffle.jpeg" alt=""></li>
 </ol>
 <p>reduce端处理方式：</p>
 <ol>
@@ -396,8 +396,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/09/20/Elasticsearch搜索高亮-java-api/" rel="next" title="Elasticsearch搜索高亮(java api)">
-                <i class="fa fa-chevron-left"></i> Elasticsearch搜索高亮(java api)
+              <a href="/2017/04/21/dubbo问题/" rel="next" title="dubbo问题">
+                <i class="fa fa-chevron-left"></i> dubbo问题
               </a>
             
           </div>
@@ -491,7 +491,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -513,7 +513,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

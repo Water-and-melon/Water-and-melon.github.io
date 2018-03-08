@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Spark,Spark Streaming," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言前文已经讲到如何的接收数据，本文将下如何根据接收到的数据，生成一个job。 Dstream抽象Dstream可以看成带有时间维度的RDD，在代码中就可以看出这点。 1private[streaming] var generatedRDDs = new HashMap[Time, RDD[T]] () 和RDD一样，">
+<meta name="keywords" content="Spark,Spark Streaming">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark streaming 如何生成job（2）">
+<meta property="og:url" content="http://yoursite.com/2017/06/02/spark-streaming-如何生成job（2/index.html">
+<meta property="og:site_name" content="Watermelon&#39;s Notes">
+<meta property="og:description" content="前言前文已经讲到如何的接收数据，本文将下如何根据接收到的数据，生成一个job。 Dstream抽象Dstream可以看成带有时间维度的RDD，在代码中就可以看出这点。 1private[streaming] var generatedRDDs = new HashMap[Time, RDD[T]] () 和RDD一样，Dstream也可以转化。可以分为两类，一种是transformation,另一">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-03-05T01:44:49.304Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark streaming 如何生成job（2）">
+<meta name="twitter:description" content="前言前文已经讲到如何的接收数据，本文将下如何根据接收到的数据，生成一个job。 Dstream抽象Dstream可以看成带有时间维度的RDD，在代码中就可以看出这点。 1private[streaming] var generatedRDDs = new HashMap[Time, RDD[T]] () 和RDD一样，Dstream也可以转化。可以分为两类，一种是transformation,另一">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/06/02/spark-streaming-如何生成job（2/"/>
+
+
+
+
+
+  <title>spark streaming 如何生成job（2） | Watermelon's Notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Watermelon's Notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Quick notest</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/02/spark-streaming-如何生成job（2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Watermelon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatarwade.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Watermelon's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spark streaming 如何生成job（2）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-02T15:18:38+08:00">
+                2017-06-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spark/" itemprop="url" rel="index">
+                    <span itemprop="name">Spark</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前文已经讲到如何的接收数据，本文将下如何根据接收到的数据，生成一个job。</p>
+<h3 id="Dstream抽象"><a href="#Dstream抽象" class="headerlink" title="Dstream抽象"></a>Dstream抽象</h3><p>Dstream可以看成带有时间维度的RDD，在代码中就可以看出这点。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[streaming] <span class="keyword">var</span> generatedRDDs = <span class="keyword">new</span> <span class="type">HashMap</span>[<span class="type">Time</span>, <span class="type">RDD</span>[<span class="type">T</span>]] ()</span><br></pre></td></tr></table></figure>
+<p>和RDD一样，Dstream也可以转化。可以分为两类，一种是transformation,另一种是output。transformation类似于RDD的transformation，像map(),filter(), flatMap()。output更像是RDD中的action，像 print(), saveAsTextFiles(), saveAsHadoopFiles(), foreachRDD() 等。<br>Dstream是父类，存在着很多的子类，像MappedDStream，FilteredDStream，这些各种各样Dstream正是通过各种相应的transformation和output生成的。</p>
+<a id="more"></a>
+<h3 id="DStreamGraph"><a href="#DStreamGraph" class="headerlink" title="DStreamGraph"></a>DStreamGraph</h3><p>spark core rdd中的关联会形成一个DAG，spark streaming 也是一样的，会形成一个 Dstream DAG，spark streaming 通过一个DStreamGraph来维护一个Dstream DAG。DStreamGraph维护着output DStream 和 Input DStream。</p>
+<h3 id="最终的Job最后如何生成呢？"><a href="#最终的Job最后如何生成呢？" class="headerlink" title="最终的Job最后如何生成呢？"></a>最终的Job最后如何生成呢？</h3><p>以最简单的wordcount的为例子：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssc.socketTextStream(<span class="string">"localhost"</span>, <span class="number">8888</span>).flatMap(lines=&gt;lines.split(<span class="string">" "</span>)).map((_,<span class="number">1</span>)).reduceByKey(_+_).print();</span><br></pre></td></tr></table></figure></p>
+<p>一开始我们知道每个Dstream中都维护着一个generatedRDDs，里面是带有时间戳的的一个个RDD，generatedRDDs是通过getOrCompute方法去将RDD生成并添加到<br>generatedRDDs中去。在父类Dstream中定义该方法，所有的子类用的都是该方法，没有重写。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[streaming] <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">getOrCompute</span></span>(time: <span class="type">Time</span>): <span class="type">Option</span>[<span class="type">RDD</span>[<span class="type">T</span>]] = &#123;</span><br><span class="line">	<span class="comment">//以时间为key值，在hashmap中get出对应的RDD，如果有就直接返回，没有的话就执行orElse的逻辑来生成相应的RDD。</span></span><br><span class="line">    generatedRDDs.get(time).orElse &#123;</span><br><span class="line">    </span><br><span class="line">      <span class="keyword">if</span> (isTimeValid(time)) &#123;</span><br><span class="line">        <span class="comment">// 最关键的是通过 compute(time) 方法获得 rdd 实例，</span></span><br><span class="line">        <span class="keyword">val</span> rddOption = createRDDWithLocalProperties(time) &#123;</span><br><span class="line">          <span class="type">PairRDDFunctions</span>.disableOutputSpecValidation.withValue(<span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="comment">//最核心的地方</span></span><br><span class="line">            compute(time)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        rddOption.foreach &#123; <span class="keyword">case</span> newRDD =&gt;</span><br><span class="line">          <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">          <span class="comment">//持久化</span></span><br><span class="line">            newRDD.persist(storageLevel)</span><br><span class="line">            logDebug(<span class="string">s"Persisting RDD <span class="subst">$&#123;newRDD.id&#125;</span> for time <span class="subst">$time</span> to <span class="subst">$storageLevel</span>"</span>)</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">//checkpoint</span></span><br><span class="line">          <span class="keyword">if</span> (checkpointDuration != <span class="literal">null</span> &amp;&amp; (time - zeroTime).isMultipleOf(checkpointDuration)) &#123;</span><br><span class="line">            newRDD.checkpoint()</span><br><span class="line">            logInfo(<span class="string">s"Marking RDD <span class="subst">$&#123;newRDD.id&#125;</span> for time <span class="subst">$time</span> for checkpointing"</span>)</span><br><span class="line">          &#125;</span><br><span class="line">           <span class="comment">//将生成的RDD放入到generatedRDDs</span></span><br><span class="line">          generatedRDDs.put(time, newRDD)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 返回生产的RDD。</span></span><br><span class="line">        rddOption</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="type">None</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>最核心的 compute方法在Dstream中是一个抽象方法，这意味着每个子类有自己的实现，先从MappedDstream举例。</p>
+<h4 id="MappedDstream的compute"><a href="#MappedDstream的compute" class="headerlink" title="MappedDstream的compute()"></a>MappedDstream的compute()</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[streaming]</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MappedDStream</span>[<span class="type">T</span>: <span class="type">ClassTag</span>, <span class="type">U</span>: <span class="type">ClassTag</span>] (<span class="params"></span></span></span><br><span class="line"><span class="class"><span class="params">    parent: <span class="type">DStream</span>[<span class="type">T</span>],</span></span></span><br><span class="line"><span class="class"><span class="params">    mapFunc: <span class="type">T</span> =&gt; <span class="type">U</span></span></span></span><br><span class="line"><span class="class"><span class="params">  </span>) <span class="keyword">extends</span> <span class="title">DStream</span>[<span class="type">U</span>](<span class="params">parent.ssc</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">dependencies</span> </span>= <span class="type">List</span>(parent)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">slideDuration</span></span>: <span class="type">Duration</span> = parent.slideDuration</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(validTime: <span class="type">Time</span>): <span class="type">Option</span>[<span class="type">RDD</span>[<span class="type">U</span>]] = &#123;</span><br><span class="line">  <span class="comment">//把上游Dstream对应时间的RDD根据转换函数进行转换，形成该Dstream相应的RDD</span></span><br><span class="line">    parent.getOrCompute(validTime).map(_.map[<span class="type">U</span>](mapFunc))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看到这段代码的时候，不禁有点豁然开朗。compute方法无非是通过上游stream对应时间的RDD，并根据转换函数进行转换，这里的转换函数就是Dstream之间的转换函数，这样就生成了当前DStream对应的RDD。整个过程相当于是一个递归的过程，递归过程总有个出口，可以想到，这里的出口就是最上游的Dstream，上面的例子中，是SocketInputDStream。</p>
+<h4 id="SocketInputDStream的compute"><a href="#SocketInputDStream的compute" class="headerlink" title="SocketInputDStream的compute()"></a>SocketInputDStream的compute()</h4><p>SocketInputDStream继承了ReceiverInputDStream，ReceiverInputDStream的compute如下:<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(validTime: <span class="type">Time</span>): <span class="type">Option</span>[<span class="type">RDD</span>[<span class="type">T</span>]] = &#123;</span><br><span class="line">    <span class="keyword">val</span> blockRDD = &#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (validTime &lt; graph.startTime) &#123;</span><br><span class="line">        <span class="comment">//	判断时间是否合理，不合理直接返回空的</span></span><br><span class="line">        <span class="keyword">new</span> <span class="type">BlockRDD</span>[<span class="type">T</span>](ssc.sc, <span class="type">Array</span>.empty)</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">       <span class="comment">//根据时间找到该时间范围内的的blockinfo。看到这里，会再一次的豁然开朗，blockinfo就是上一篇文章提到的，receiver在受到数据后生成block，并将blockinfo传递到driver中。</span></span><br><span class="line">        <span class="keyword">val</span> blockInfos =</span><br><span class="line">          ssc.scheduler.receiverTracker.getBlocksOfBatch(validTime).get(id).getOrElse(<span class="type">Seq</span>.empty)</span><br><span class="line">        <span class="keyword">val</span> blockStoreResults = blockInfos.map &#123; _.blockStoreResult &#125;</span><br><span class="line">        <span class="keyword">val</span> blockIds = blockStoreResults.map &#123; _.blockId.asInstanceOf[<span class="type">BlockId</span>] &#125;.toArray</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Check whether all the results are of the same type</span></span><br><span class="line">        <span class="keyword">val</span> resultTypes = blockStoreResults.map &#123; _.getClass &#125;.distinct</span><br><span class="line">        <span class="keyword">if</span> (resultTypes.size &gt; <span class="number">1</span>) &#123;</span><br><span class="line">          logWarning(<span class="string">"Multiple result types in block information, WAL information will be ignored."</span>)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// If all the results are of type WriteAheadLogBasedStoreResult, then create</span></span><br><span class="line">        <span class="comment">// WriteAheadLogBackedBlockRDD else create simple BlockRDD.</span></span><br><span class="line">        <span class="keyword">if</span> (resultTypes.size == <span class="number">1</span> &amp;&amp; resultTypes.head == classOf[<span class="type">WriteAheadLogBasedStoreResult</span>]) &#123;</span><br><span class="line">          <span class="keyword">val</span> logSegments = blockStoreResults.map &#123;</span><br><span class="line">            _.asInstanceOf[<span class="type">WriteAheadLogBasedStoreResult</span>].segment</span><br><span class="line">          &#125;.toArray</span><br><span class="line">          <span class="comment">// Since storeInBlockManager = false, the storage level does not matter.</span></span><br><span class="line">          <span class="keyword">new</span> <span class="type">WriteAheadLogBackedBlockRDD</span>[<span class="type">T</span>](ssc.sparkContext,</span><br><span class="line">            blockIds, logSegments, storeInBlockManager = <span class="literal">false</span>, <span class="type">StorageLevel</span>.<span class="type">MEMORY_ONLY_SER</span>)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="keyword">new</span> <span class="type">BlockRDD</span>[<span class="type">T</span>](ssc.sc, blockIds)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//返回根据blockinfo生成的blockRDD。</span></span><br><span class="line">    <span class="type">Some</span>(blockRDD)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>现在RDD和DStream的关系已经搞清楚了。</p>
+<h3 id="通过DStreamGraph生成RDD-DAG"><a href="#通过DStreamGraph生成RDD-DAG" class="headerlink" title="通过DStreamGraph生成RDD DAG"></a>通过DStreamGraph生成RDD DAG</h3><p>从前面已经知道了RDD的生成过程，Spark core中需要RDD DAG进行任务提交。接下来就看看如何生成RDD DAG。RDD DAG生成需要依靠DStreamGraph，上文中也说到DStreamGraph维护者整个DStream的DAG。生成的过程代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generateJobs</span></span>(time: <span class="type">Time</span>): <span class="type">Seq</span>[<span class="type">Job</span>] = &#123;</span><br><span class="line">  logDebug(<span class="string">"Generating jobs for time "</span> + time)</span><br><span class="line">  <span class="keyword">val</span> jobs = <span class="keyword">this</span>.synchronized &#123;</span><br><span class="line">  <span class="comment">//	调用纪录的outputStream的generateJob方法，并指定对应的时间</span></span><br><span class="line">    outputStreams.flatMap(outputStream =&gt; outputStream.generateJob(time))</span><br><span class="line">  &#125;</span><br><span class="line">  logDebug(<span class="string">"Generated "</span> + jobs.length + <span class="string">" jobs for time "</span> + time)</span><br><span class="line">  jobs</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>outputStream.generateJob(time)方法如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[streaming] <span class="function"><span class="keyword">def</span> <span class="title">generateJob</span></span>(time: <span class="type">Time</span>): <span class="type">Option</span>[<span class="type">Job</span>] = &#123;</span><br><span class="line">	<span class="comment">//熟悉的getOrCompute方法</span></span><br><span class="line">  getOrCompute(time) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(rdd) =&gt; &#123;</span><br><span class="line">      <span class="keyword">val</span> jobFunc = () =&gt; &#123;</span><br><span class="line">        <span class="keyword">val</span> emptyFunc = &#123; (iterator: <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; &#123;&#125; &#125;</span><br><span class="line">        <span class="comment">//jobFunc定义</span></span><br><span class="line">        context.sparkContext.runJob(rdd, emptyFunc)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">//生成并返回job</span></span><br><span class="line">      <span class="type">Some</span>(<span class="keyword">new</span> <span class="type">Job</span>(time, jobFunc))</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="type">None</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>getOrCompute方法会递归的计算出各个DStream对应时间的RDD，从而形成一个完整的RDD DAG。Job是spark streaming 自己定义的类：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[streaming]</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Job</span>(<span class="params">val time: <span class="type">Time</span>, func: (</span>) <span class="title">=&gt;</span> <span class="title">_</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> id: <span class="type">String</span> = _</span><br><span class="line">  <span class="keyword">var</span> result: <span class="type">Try</span>[_] = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>() &#123;</span><br><span class="line">    result = <span class="type">Try</span>(func())</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">setId</span></span>(number: <span class="type">Int</span>) &#123;</span><br><span class="line">    id = <span class="string">"streaming job "</span> + time + <span class="string">"."</span> + number</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span> </span>= id</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中的run方法会触发整个job，其中的func()就是在生成job的时候传入的func()。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>至此，Job的生成过程总体流程已经清晰，还差的一点是如何每隔一个时间段去触发DStreamGraph去动态的生成Job，将在下一篇中进行分析。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Spark/" rel="tag"># Spark</a>
+          
+            <a href="/tags/Spark-Streaming/" rel="tag"># Spark Streaming</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/28/spark-streaming-如何生成job（1）/" rel="next" title="spark streaming 如何生成job（1）">
+                <i class="fa fa-chevron-left"></i> spark streaming 如何生成job（1）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/06/spark-streaming-如何生成job（2-1/" rel="prev" title="spark streaming 如何生成job（3）">
+                spark streaming 如何生成job（3） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zMjQwMy84OTY0"></div>
+    </div>
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatarwade.jpg"
+                alt="Watermelon" />
+            
+              <p class="site-author-name" itemprop="name">Watermelon</p>
+              <p class="site-description motion-element" itemprop="description">Just A Coder</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dstream抽象"><span class="nav-number">2.</span> <span class="nav-text">Dstream抽象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DStreamGraph"><span class="nav-number">3.</span> <span class="nav-text">DStreamGraph</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最终的Job最后如何生成呢？"><span class="nav-number">4.</span> <span class="nav-text">最终的Job最后如何生成呢？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MappedDstream的compute"><span class="nav-number">4.1.</span> <span class="nav-text">MappedDstream的compute()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SocketInputDStream的compute"><span class="nav-number">4.2.</span> <span class="nav-text">SocketInputDStream的compute()</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过DStreamGraph生成RDD-DAG"><span class="nav-number">5.</span> <span class="nav-text">通过DStreamGraph生成RDD DAG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Watermelon</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

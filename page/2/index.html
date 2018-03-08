@@ -692,7 +692,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/16/poll-select和epoll/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/06/spark-streaming-如何生成job（2-1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Watermelon">
@@ -711,7 +711,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/05/16/poll-select和epoll/" itemprop="url">poll,select和epoll</a></h1>
+                <a class="post-title-link" href="/2017/06/06/spark-streaming-如何生成job（2-1/" itemprop="url">spark streaming 如何生成job（3）</a></h1>
         
 
         <div class="post-meta">
@@ -723,8 +723,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-16T09:12:58+08:00">
-                2017-05-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-06T17:18:36+08:00">
+                2017-06-06
               </time>
             
 
@@ -746,8 +746,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/" itemprop="url" rel="index">
-                    <span itemprop="name">Linux</span>
+                  <a href="/categories/Spark/" itemprop="url" rel="index">
+                    <span itemprop="name">Spark</span>
                   </a>
                 </span>
 
@@ -784,19 +784,12 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>IO复用使得程序能够同时监听多个文件描述符，当存在大量连接的时候能够提升系统性能。Linux下实现IO复用的系统调用有select，poll，epoll三种。本文对这三种进行总结。</p>
-<h3 id="select"><a href="#select" class="headerlink" title="select"></a>select</h3><p>首先select阻塞的（一开始我一直以为是非阻塞）。select就是在一定时间内，对用户设置的可读，可写等事件进行监听。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">select</span><span class="params">(<span class="keyword">int</span> nfds, fd_set *readfds, fd_set *writefds, fd_set *errorfds, struct timeval *timeout)</span></span>;</span><br></pre></td></tr></table></figure>
-<p>select系统调用如上所示，其中：</p>
-<ul>
-<li>nfds：指的是监听的描述符的个数，有限制，32位机器是1024，64位机器是2048。</li>
-<li>readfds writefds errorfds分别对应自己关心事件对应的描述符，如readfds里就是关心是否可读的描述符的集合。select也是通过修改集合来通知程序哪个文件描述符已经就位。</li>
-<li>timeout就是select的超时时间。select将关心的文件描述符拷贝到内核态地址，并通过轮询的方式，查看集合中的文件描述符是否有对应的事件发生，如果有发生，就把对应的位置进行标记，以通知应用程序，select最后返回的是以就绪的线程描述符的数量。如果遍历一遍没有就绪的线程，内核就会一直的轮询，直到有对应的事件发生。如果一直没有，且超过了超树事件，就返回0。</li>
-<li>客户端如何知道哪个描述符可用？只能去遍历所有返回的描述符集合，如果被标记，就说明可用</li>
-</ul>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前文中，对DStreamGraph动态的生成Job进行了分析，本文分析如何每隔一个时间去生成Job。</p>
+<h3 id="JobScheduler"><a href="#JobScheduler" class="headerlink" title="JobScheduler"></a>JobScheduler</h3><p>JobScheduler是Spark Streaming 的 Job 总调度者，JobScheduler 中有两个非常重要的成员：JobGenerator 和 ReceiverTracker。JobScheduler 将生成Job的工作委托给 JobGenerator，而将源头输入数据的记录工作委托给 ReceiverTracker。前面对这两个类都有提到过。下面进行详细介绍。</p>
+<h3 id="JobGenerator"><a href="#JobGenerator" class="headerlink" title="JobGenerator"></a>JobGenerator</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">start</span></span>(): <span class="type">Unit</span> = synchronized &#123;</span><br><span class="line">    <span class="keyword">if</span> (eventActor != <span class="literal">null</span>) <span class="keyword">return</span> </span><br><span class="line"><span class="comment">//创建用于生成job的actor</span></span><br><span class="line">    eventActor = ssc.env.actorSystem.actorOf(<span class="type">Props</span>(<span class="keyword">new</span> <span class="type">Actor</span> &#123;</span><br><span class="line">      <span class="function"><span class="keyword">def</span> <span class="title">receive</span> </span>= &#123;</span><br><span class="line">        <span class="keyword">case</span> event: <span class="type">JobGeneratorEvent</span> =&gt;  processEvent(event)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;), <span class="string">"JobGenerator"</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (ssc.isCheckpointPresent) &#123;</span><br><span class="line">      restart()</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">//第一次启动</span></span><br><span class="line">      startFirstTime()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line"> <span class="comment">/** Starts the generator for the first time */</span></span><br><span class="line">  <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">startFirstTime</span></span>() &#123;</span><br><span class="line">    <span class="keyword">val</span> startTime = <span class="keyword">new</span> <span class="type">Time</span>(timer.getStartTime())</span><br><span class="line">    <span class="comment">//DStreamGraph的初始化</span></span><br><span class="line">    graph.start(startTime - graph.batchDuration)</span><br><span class="line">    <span class="comment">//启动定时器，用于每隔duration进行job的生成。</span></span><br><span class="line">    timer.start(startTime.milliseconds)</span><br><span class="line">    logInfo(<span class="string">"Started JobGenerator at "</span> + startTime)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2017/05/16/poll-select和epoll/#more" rel="contents">
+            <a class="btn" href="/2017/06/06/spark-streaming-如何生成job（2-1/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -847,7 +840,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/21/dubbo问题/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/02/spark-streaming-如何生成job（2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Watermelon">
@@ -866,7 +859,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/04/21/dubbo问题/" itemprop="url">dubbo问题</a></h1>
+                <a class="post-title-link" href="/2017/06/02/spark-streaming-如何生成job（2/" itemprop="url">spark streaming 如何生成job（2）</a></h1>
         
 
         <div class="post-meta">
@@ -878,8 +871,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-21T21:12:32+08:00">
-                2017-04-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-02T15:18:38+08:00">
+                2017-06-02
               </time>
             
 
@@ -901,8 +894,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
+                  <a href="/categories/Spark/" itemprop="url" rel="index">
+                    <span itemprop="name">Spark</span>
                   </a>
                 </span>
 
@@ -939,13 +932,13 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>记录最近玩dubbo出现的问题（持续更新）</p>
-<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><ol>
-<li>一开始阿里云上暴露接口，发现暴露在内网，修改hosts文件将主机名映射到外网。</li>
-<li>dubbo官方提供了三种注册方式。分别是：利用main方法进行服务注册（多用于测试）;利用tomcat容器;利用dubbo官方提提供的com.alibaba.dubbo.container.Main方法（推荐）。<br>用maven打包jar。
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前文已经讲到如何的接收数据，本文将下如何根据接收到的数据，生成一个job。</p>
+<h3 id="Dstream抽象"><a href="#Dstream抽象" class="headerlink" title="Dstream抽象"></a>Dstream抽象</h3><p>Dstream可以看成带有时间维度的RDD，在代码中就可以看出这点。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[streaming] <span class="keyword">var</span> generatedRDDs = <span class="keyword">new</span> <span class="type">HashMap</span>[<span class="type">Time</span>, <span class="type">RDD</span>[<span class="type">T</span>]] ()</span><br></pre></td></tr></table></figure>
+<p>和RDD一样，Dstream也可以转化。可以分为两类，一种是transformation,另一种是output。transformation类似于RDD的transformation，像map(),filter(), flatMap()。output更像是RDD中的action，像 print(), saveAsTextFiles(), saveAsHadoopFiles(), foreachRDD() 等。<br>Dstream是父类，存在着很多的子类，像MappedDStream，FilteredDStream，这些各种各样Dstream正是通过各种相应的transformation和output生成的。</p>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2017/04/21/dubbo问题/#more" rel="contents">
+            <a class="btn" href="/2017/06/02/spark-streaming-如何生成job（2/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -996,7 +989,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/12/CurrentHashmap-1/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/28/spark-streaming-如何生成job（1）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Watermelon">
@@ -1015,7 +1008,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/01/12/CurrentHashmap-1/" itemprop="url">CurrentHashmap(1)</a></h1>
+                <a class="post-title-link" href="/2017/05/28/spark-streaming-如何生成job（1）/" itemprop="url">spark streaming 如何生成job（1）</a></h1>
         
 
         <div class="post-meta">
@@ -1027,8 +1020,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-12T21:16:18+08:00">
-                2017-01-12
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-28T11:12:38+08:00">
+                2017-05-28
               </time>
             
 
@@ -1050,8 +1043,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
+                  <a href="/categories/Spark/" itemprop="url" rel="index">
+                    <span itemprop="name">Spark</span>
                   </a>
                 </span>
 
@@ -1088,12 +1081,12 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>JDK1.8 ConcurrentHashMap相比JDK1.7 ConcurrentHashMap有了进一步的优化。ConcurrentHashMap较为复杂，光代码就有7000行左右。先简单看下init，put,get。</p>
-<h3 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h3><p>ConcurrentHashMap的基本结构和hashmap是一样的。包括一个table，用链表解决hash冲突，链表过长时，转化成红黑树；当红黑树的节点个数减少到指定阈值时，退化成链表。<br>以下是摘出ConcurrentHashMap较为关键的字段。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">// 最大容量：2^30=1073741824</span><br><span class="line">private static final int MAXIMUM_CAPACITY = 1 &lt;&lt; 30;</span><br><span class="line"></span><br><span class="line">// 默认初始值</span><br><span class="line">private static final int DEFAULT_CAPACITY = 16;</span><br><span class="line"></span><br><span class="line">// </span><br><span class="line">private static final float LOAD_FACTOR = 0.75f;</span><br><span class="line"></span><br><span class="line">// 链表转红黑树阀值,&gt; 8 链表转换为红黑树</span><br><span class="line">static final int TREEIFY_THRESHOLD = 8;</span><br><span class="line"></span><br><span class="line">//树转链表阀值，小于等于6</span><br><span class="line">static final int UNTREEIFY_THRESHOLD = 6;</span><br><span class="line"></span><br><span class="line">// 2^15-1，help resize的最大线程数</span><br><span class="line">private static final int MAX_RESIZERS = (1 &lt;&lt; (32 - RESIZE_STAMP_BITS)) - 1;</span><br><span class="line"></span><br><span class="line">// forwarding nodes的hash值</span><br><span class="line">static final int MOVED     = -1; </span><br><span class="line"></span><br><span class="line">// 树根节点的hash值</span><br><span class="line">static final int TREEBIN   = -2; </span><br><span class="line"></span><br><span class="line">// ReservationNode的hash值</span><br><span class="line">static final int RESERVED  = -3; </span><br><span class="line"></span><br><span class="line">// 可用处理器数量</span><br><span class="line">static final int NCPU = Runtime.getRuntime().availableProcessors();</span><br><span class="line">// 标识当前table的状态，-1表示正在初始化，-n标示有有N-1个线程正在进行扩容操作，0表示没初始化，正数表示下次要扩容的大小。</span><br><span class="line">private transient volatile int sizeCtl;</span><br></pre></td></tr></table></figure>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>spark streaming是spark的重要模块，微批量的处理数据流，底层还是依赖于spark core。spark数据流的处理方式是微批量的计算方式，不是传统意义上的实时计算，是一种近实时的方式。但是这样的好处是具有很高的吞吐率。</p>
+<h3 id="总体逻辑"><a href="#总体逻辑" class="headerlink" title="总体逻辑"></a>总体逻辑</h3><p>spark streamig 的总体逻辑简单点来说就是，executor端启动一个recevier，不断的结合数据流，接受到的数据流存储在spark的存储体系中，driver不断的接受到对应block的元数据，根据设置的duration，启动一个定时器，不断的生成spark job。生成job后的逻辑就和sparkcore很相似了，也是切分成各个stage，然后转换成很多个task进行提交调度，最后完成实时计算。有一个问题就是recevier接受到的数据没处理完就丢失了怎么办？spark streamig 采用了wal和checkpoint的方式进行容错。</p>
+<p>本文先介绍recevier的数据接收流程，代码版本是spark1.3.1<br>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2017/01/12/CurrentHashmap-1/#more" rel="contents">
+            <a class="btn" href="/2017/05/28/spark-streaming-如何生成job（1）/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1135,7 +1128,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1185,7 +1178,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1196,7 +1189,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -1207,7 +1200,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

@@ -242,7 +242,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/10/AQS总结/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/16/poll-select和epoll/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Watermelon">
@@ -261,7 +261,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/01/10/AQS总结/" itemprop="url">AQS总结</a></h1>
+                <a class="post-title-link" href="/2017/05/16/poll-select和epoll/" itemprop="url">poll,select和epoll</a></h1>
         
 
         <div class="post-meta">
@@ -273,8 +273,163 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-10T12:32:16+08:00">
-                2017-01-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-16T09:12:58+08:00">
+                2017-05-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>IO复用使得程序能够同时监听多个文件描述符，当存在大量连接的时候能够提升系统性能。Linux下实现IO复用的系统调用有select，poll，epoll三种。本文对这三种进行总结。</p>
+<h3 id="select"><a href="#select" class="headerlink" title="select"></a>select</h3><p>首先select阻塞的（一开始我一直以为是非阻塞）。select就是在一定时间内，对用户设置的可读，可写等事件进行监听。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">select</span><span class="params">(<span class="keyword">int</span> nfds, fd_set *readfds, fd_set *writefds, fd_set *errorfds, struct timeval *timeout)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>select系统调用如上所示，其中：</p>
+<ul>
+<li>nfds：指的是监听的描述符的个数，有限制，32位机器是1024，64位机器是2048。</li>
+<li>readfds writefds errorfds分别对应自己关心事件对应的描述符，如readfds里就是关心是否可读的描述符的集合。select也是通过修改集合来通知程序哪个文件描述符已经就位。</li>
+<li>timeout就是select的超时时间。select将关心的文件描述符拷贝到内核态地址，并通过轮询的方式，查看集合中的文件描述符是否有对应的事件发生，如果有发生，就把对应的位置进行标记，以通知应用程序，select最后返回的是以就绪的线程描述符的数量。如果遍历一遍没有就绪的线程，内核就会一直的轮询，直到有对应的事件发生。如果一直没有，且超过了超树事件，就返回0。</li>
+<li>客户端如何知道哪个描述符可用？只能去遍历所有返回的描述符集合，如果被标记，就说明可用</li>
+</ul>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/05/16/poll-select和epoll/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/21/dubbo问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Watermelon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatarwade.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Watermelon's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/04/21/dubbo问题/" itemprop="url">dubbo问题</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-21T21:12:32+08:00">
+                2017-04-21
               </time>
             
 
@@ -334,11 +489,13 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>AQS（Abstract Queued Synchronizer）是JUC并发包中的核心基础组件，作者是大名鼎鼎的Doug Lea。通过AQS可以实现大部分的同步需求。</p>
-<h3 id="宏观架构"><a href="#宏观架构" class="headerlink" title="宏观架构"></a>宏观架构</h3><p>AQS包括一个state和一个FIFO的CLH队列，如下图所示：<br><img src="/images/AQS.png" alt=""><br>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>记录最近玩dubbo出现的问题（持续更新）</p>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><ol>
+<li>一开始阿里云上暴露接口，发现暴露在内网，修改hosts文件将主机名映射到外网。</li>
+<li>dubbo官方提供了三种注册方式。分别是：利用main方法进行服务注册（多用于测试）;利用tomcat容器;利用dubbo官方提提供的com.alibaba.dubbo.container.Main方法（推荐）。<br>用maven打包jar。
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2017/01/10/AQS总结/#more" rel="contents">
+            <a class="btn" href="/2017/04/21/dubbo问题/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -389,7 +546,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/09/20/Elasticsearch搜索高亮-java-api/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/07/设计模式：变继承为组合/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Watermelon">
@@ -408,7 +565,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/09/20/Elasticsearch搜索高亮-java-api/" itemprop="url">Elasticsearch搜索高亮(java api)</a></h1>
+                <a class="post-title-link" href="/2017/03/07/设计模式：变继承为组合/" itemprop="url">设计模式：变继承为组合</a></h1>
         
 
         <div class="post-meta">
@@ -420,8 +577,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-20T22:12:32+08:00">
-                2016-09-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-07T13:11:08+08:00">
+                2017-03-07
               </time>
             
 
@@ -443,8 +600,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/大数据/" itemprop="url" rel="index">
-                    <span itemprop="name">大数据</span>
+                  <a href="/categories/设计模式/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
                   </a>
                 </span>
 
@@ -481,12 +638,12 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>最近运动社区的项目中，需要能够对所有的问答数据通过关键字进行全文检索，并高亮显示搜索关键字。调研了一下Elasticsearch，发现实现起来特别简单。</p>
-<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>Elasticsearch是一个实时分布式搜索和分析引擎，可以用于全文检索、聚合分析。Elasticsearch、logstash、kibana并称为ELK技术栈，可以一栈式的进行数据采集、分析、可视化工作，功能非常强大。</p>
-<h3 id="使用ik进行中文分词"><a href="#使用ik进行中文分词" class="headerlink" title="使用ik进行中文分词"></a>使用ik进行中文分词</h3><p>由于问答系统中都是一些中文的内容，Elasticsearch 自带的分词无法对中文进行分词。需要安装ik分词插件。<br>安装步骤：<a href="https://github.com/medcl/elasticsearch-analysis-ik" target="_blank" rel="noopener">点击此链接</a><br>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>变继承为组合绝对是设计模式的最为精髓的地方，很多的设计模式都是追求的这一点，本文通过一些例子谈谈我自己的对这些的认识。</p>
+<h3 id="Decorator-Pattern"><a href="#Decorator-Pattern" class="headerlink" title="Decorator Pattern"></a>Decorator Pattern</h3><p>装饰者模式无非是对一个类中的某个方法进行装饰，从而可以添加新的业务。自然的，我们可以使用继承的方式去实现。比如对runable中的run方法进行装饰，我们可以这么做：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">LogRunnable</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">//增加写日志的逻辑</span></span><br><span class="line">        System.out.println(<span class="string">"记日志"</span>);</span><br><span class="line">        myRun();</span><br><span class="line">       </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//定义抽象的需要增加的代码</span></span><br><span class="line">    <span class="function"><span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">myRun</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyRunnable</span> <span class="keyword">extends</span> <span class="title">LogRunnable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">myRun</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       System.out.println(<span class="string">"自己的业务"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/09/20/Elasticsearch搜索高亮-java-api/#more" rel="contents">
+            <a class="btn" href="/2017/03/07/设计模式：变继承为组合/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -537,7 +694,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/09/14/redis/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/16/ThreadPoolExecutor源码浅析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Watermelon">
@@ -556,7 +713,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/09/14/redis/" itemprop="url">redis总结</a></h1>
+                <a class="post-title-link" href="/2017/02/16/ThreadPoolExecutor源码浅析/" itemprop="url">ThreadPoolExecutor源码浅析</a></h1>
         
 
         <div class="post-meta">
@@ -568,8 +725,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-14T10:58:12+08:00">
-                2016-09-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-02-16T11:12:58+08:00">
+                2017-02-16
               </time>
             
 
@@ -591,8 +748,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
                   </a>
                 </span>
 
@@ -629,12 +786,311 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>总结下redis中使用过的数据结构，看的是《Redis设计与实现》这本书，文章图片自这本书。</p>
-<h3 id="string"><a href="#string" class="headerlink" title="string"></a>string</h3><p>最基本的数据结构，用法很简单，包括：set、get、strlen、getrange、append，一些针对字符串基本的操作都支持。String的底层是SDS(simple dynamic string)。结构如下图所示：</p>
-<p><img src="/Users/lcx/Documents/文章/总结/redis SDS结构.jpeg" alt=""><br>相比最传统的字符数组，做了一些封装，记录了长度和空闲长度。空闲长度可以有效的防止内存的溢出。在C中原始的字符串中，每次对字符串的改动都会涉及到到内存的重分配。redis通过空间预分配的策略降低内存重分配的次数，原理就是在分配内存的时候多申请点空间预留着，当下次有改动的时候，如果预留的空间足够，就不必要进行重分配了。可以看做空间换时间的做法。内存回收也是这样，不急着回收，防止又有新的内容进入。<br>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>最近在看JUC中的线程池，分析下ThreadPoolExecutor。</p>
+<h3 id="总体逻辑"><a href="#总体逻辑" class="headerlink" title="总体逻辑"></a>总体逻辑</h3><p>线程池中存在一些工作线程和一个任务队列，工作线程是可以复用的，完成一个任务后可以继续完成下一个任务，工作线程的数量是有上限的，如果任务数量超过了工作线程的数量的上限，就会把任务放在一个任务队列中等待。</p>
+<h3 id="源码浅析"><a href="#源码浅析" class="headerlink" title="源码浅析"></a>源码浅析</h3><h4 id="Worker"><a href="#Worker" class="headerlink" title="Worker"></a>Worker</h4><p>worker是工作线程类，对线程进行了一定的封装。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Worker</span></span></span><br><span class="line"><span class="class">     <span class="keyword">extends</span> <span class="title">AbstractQueuedSynchronizer</span></span></span><br><span class="line"><span class="class">     <span class="keyword">implements</span> <span class="title">Runnable</span></span></span><br><span class="line"><span class="class"> </span>&#123;</span><br><span class="line">      <span class="comment">// 版本号</span></span><br><span class="line">     <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">6138294804551838833L</span>;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">     <span class="comment">// worker 对应的实际线程</span></span><br><span class="line">     <span class="keyword">final</span> Thread thread;</span><br><span class="line">    </span><br><span class="line">     <span class="comment">// 当前的work运行的是哪个Runnable，因为线程是可以复用的</span></span><br><span class="line">     Runnable firstTask;</span><br><span class="line">     </span><br><span class="line">     <span class="comment">// 当前线程已经完成的工作任务数量</span></span><br><span class="line">     <span class="keyword">volatile</span> <span class="keyword">long</span> completedTasks;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>发现worker居然继承AbstractQueuedSynchronizer，可以用worker对象进行一些同步的操作，重写的函数较为简单，简单的互斥锁，1表示锁定，0表示没有锁定。<br>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/09/14/redis/#more" rel="contents">
+            <a class="btn" href="/2017/02/16/ThreadPoolExecutor源码浅析/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/14/OLAP基本概念/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Watermelon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatarwade.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Watermelon's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/01/14/OLAP基本概念/" itemprop="url">OLAP基本概念</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-14T19:18:38+08:00">
+                2017-01-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/OLAP/" itemprop="url" rel="index">
+                    <span itemprop="name">OLAP</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>最近接触的项目涉及到OLATP相关，总结下基础概念</p>
+<h3 id="cube"><a href="#cube" class="headerlink" title="cube"></a>cube</h3><p>cube即多维数据集，是指一组用于分析数据的相关度量值和维度。下图就是一个标准的立方体。对于3维立方体，我们可以想象成一个三维的坐标轴，三个坐标轴也就对应着三个维度（Dimension），</p>
+<p><img src="http://webdataanalysis.net/wp-content/uploads/2010/08/Data-Cube.png" alt=""></p>
+<h3 id="度量"><a href="#度量" class="headerlink" title="度量"></a>度量</h3><p>度量表示用来聚合分析的数据信息，往往是表中的一个字段，比如销售额。<br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/01/14/OLAP基本概念/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/12/CurrentHashmap-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Watermelon">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatarwade.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Watermelon's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/01/12/CurrentHashmap-1/" itemprop="url">CurrentHashmap(1)</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-12T21:16:18+08:00">
+                2017-01-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>JDK1.8 ConcurrentHashMap相比JDK1.7 ConcurrentHashMap有了进一步的优化。ConcurrentHashMap较为复杂，光代码就有7000行左右。先简单看下init，put,get。</p>
+<h3 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h3><p>ConcurrentHashMap的基本结构和hashmap是一样的。包括一个table，用链表解决hash冲突，链表过长时，转化成红黑树；当红黑树的节点个数减少到指定阈值时，退化成链表。<br>以下是摘出ConcurrentHashMap较为关键的字段。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">// 最大容量：2^30=1073741824</span><br><span class="line">private static final int MAXIMUM_CAPACITY = 1 &lt;&lt; 30;</span><br><span class="line"></span><br><span class="line">// 默认初始值</span><br><span class="line">private static final int DEFAULT_CAPACITY = 16;</span><br><span class="line"></span><br><span class="line">// </span><br><span class="line">private static final float LOAD_FACTOR = 0.75f;</span><br><span class="line"></span><br><span class="line">// 链表转红黑树阀值,&gt; 8 链表转换为红黑树</span><br><span class="line">static final int TREEIFY_THRESHOLD = 8;</span><br><span class="line"></span><br><span class="line">//树转链表阀值，小于等于6</span><br><span class="line">static final int UNTREEIFY_THRESHOLD = 6;</span><br><span class="line"></span><br><span class="line">// 2^15-1，help resize的最大线程数</span><br><span class="line">private static final int MAX_RESIZERS = (1 &lt;&lt; (32 - RESIZE_STAMP_BITS)) - 1;</span><br><span class="line"></span><br><span class="line">// forwarding nodes的hash值</span><br><span class="line">static final int MOVED     = -1; </span><br><span class="line"></span><br><span class="line">// 树根节点的hash值</span><br><span class="line">static final int TREEBIN   = -2; </span><br><span class="line"></span><br><span class="line">// ReservationNode的hash值</span><br><span class="line">static final int RESERVED  = -3; </span><br><span class="line"></span><br><span class="line">// 可用处理器数量</span><br><span class="line">static final int NCPU = Runtime.getRuntime().availableProcessors();</span><br><span class="line">// 标识当前table的状态，-1表示正在初始化，-n标示有有N-1个线程正在进行扩容操作，0表示没初始化，正数表示下次要扩容的大小。</span><br><span class="line">private transient volatile int sizeCtl;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/01/12/CurrentHashmap-1/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -676,7 +1132,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -726,7 +1182,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -737,7 +1193,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -748,7 +1204,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
